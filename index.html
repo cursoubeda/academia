@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Asistencia - Curso Power BI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #0078d4;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+        }
+        header img {
+            max-height: 50px;
+        }
+        h1, h2 {
+            margin: 0;
+        }
+        .control-panel {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        input, button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #0078d4;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .attendance-total {
+            font-weight: bold;
+            background-color: #f0f7ff;
+        }
+        .attendance-high {
+            background-color: #e6ffe6;
+            color: #006600;
+        }
+        .attendance-medium {
+            background-color: #fff2e6;
+            color: #cc6600;
+        }
+        .attendance-low {
+            background-color: #ffe6e6;
+            color: #cc0000;
+        }
+        .chart-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .stats-panel {
+            flex: 1;
+            min-width: 250px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-card {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+        }
+        .total-attendance {
+            background-color: #0078d4;
+        }
+        .perfect-attendance {
+            background-color: #107c10;
+        }
+        .risk-attendance {
+            background-color: #d13438;
+        }
+        canvas {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Control de Asistencia - Curso Power BI</h1>
+                <p>Registro y análisis de participación</p>
+            </div>
+            <img src="https://cienwebs.org/wp-content/uploads/2018/06/TextoNEW-RED.png" alt="Logo">
+        </header>
+
+        <div class="control-panel">
+            <input type="text" id="newParticipant" placeholder="Nombre del participante">
+            <button onclick="addParticipant()">Agregar Participante</button>
+            <button onclick="exportData()">Exportar Datos</button>
+        </div>
+
+        <table id="attendanceTable">
+            <thead>
+                <tr>
+                    <th>Participante</th>
+                    <th>Clase 1</th>
+                    <th>Clase 2</th>
+                    <th>Clase 3</th>
+                    <th>Clase 4</th>
+                    <th>Clase 5</th>
+                    <th>Clase 6</th>
+                    <th>Asistencia</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Contenido dinámico se añadirá aquí -->
+            </tbody>
+            <tfoot>
+                <tr class="attendance-total">
+                    <td>Asistencia General</td>
+                    <td id="class1Total">0%</td>
+                    <td id="class2Total">0%</td>
+                    <td id="class3Total">0%</td>
+                    <td id="class4Total">0%</td>
+                    <td id="class5Total">0%</td>
+                    <td id="class6Total">0%</td>
+                    <td id="totalAttendance">0%</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="dashboard">
+            <div class="chart-container">
+                <h2>Gráfica de Asistencia por Participante</h2>
+                <canvas id="attendanceChart"></canvas>
+            </div>
+            
+            <div class="stats-panel">
+                <h2>Estadísticas del Curso</h2>
+                <div class="stat-card total-attendance">
+                    <h3>Asistencia General</h3>
+                    <p id="statTotalAttendance" style="font-size: 24px; margin: 5px 0;">0%</p>
+                </div>
+                <div class="stat-card perfect-attendance">
+                    <h3>Participantes con 100%</h3>
+                    <p id="statPerfectAttendance" style="font-size: 24px; margin: 5px 0;">0</p>
+                </div>
+                <div class="stat-card risk-attendance">
+                    <h3>Participantes en Riesgo (<50%)</h3>
+                    <p id="statRiskAttendance" style="font-size: 24px; margin: 5px 0;">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script>
+        // Datos de asistencia
+        let participants = [
+            { name: "María López", attendance: [true, true, false, true, false, false] },
+            { name: "Juan Pérez", attendance: [true, true, true, true, true, true] },
+            { name: "Ana García", attendance: [true, false, true, false, true, false] }
+        ];
+
+        // Colores para la gráfica
+        const chartColors = [
+            "#0078D4", "#107C10", "#FFB900", "#D13438", "#8764B8", "#00B7C3",
+            "#498205", "#E74856", "#5B5FC7", "#009E49", "#C239B3", "#FF8C00"
+        ];
+
+        // Inicialización
+        let attendanceChart = null;
+
+        // Función para inicializar la página
+        function initialize() {
+            renderTable();
+            updateStats();
+            createChart();
+        }
+
+        // Función para renderizar la tabla de asistencia
+        function renderTable() {
+            const tbody = document.querySelector("#attendanceTable tbody");
+            tbody.innerHTML = "";
+
+            participants.forEach((participant, index) => {
+                const row = document.createElement("tr");
+                
+                // Nombre del participante
+                const nameCell = document.createElement("td");
+                nameCell.textContent = participant.name;
+                row.appendChild(nameCell);
+
+                // Casillas de verificación para cada clase
+                for (let i = 0; i < 6; i++) {
+                    const checkCell = document.createElement("td");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.checked = participant.attendance[i];
+                    checkbox.addEventListener("change", function() {
+                        participants[index].attendance[i] = this.checked;
+                        updateStats();
+                        updateChart();
+                    });
+                    checkCell.appendChild(checkbox);
+                    row.appendChild(checkCell);
+                }
+
+                // Porcentaje de asistencia
+                const attendanceRate = calculateAttendanceRate(participant.attendance);
+                const attendanceCell = document.createElement("td");
+                attendanceCell.textContent = `${attendanceRate}%`;
+                
+                // Aplicar clases según porcentaje
+                if (attendanceRate >= 80) {
+                    attendanceCell.className = "attendance-high";
+                } else if (attendanceRate >= 50) {
+                    attendanceCell.className = "attendance-medium";
+                } else {
+                    attendanceCell.className = "attendance-low";
+                }
+                
+                row.appendChild(attendanceCell);
+
+                // Botón de eliminar
+                const actionCell = document.createElement("td");
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Eliminar";
+                deleteButton.addEventListener("click", function() {
+                    participants.splice(index, 1);
+                    renderTable();
+                    updateStats();
+                    updateChart();
+                });
+                actionCell.appendChild(deleteButton);
+                row.appendChild(actionCell);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Función para añadir un nuevo participante
+        function addParticipant() {
+            const nameInput = document.getElementById("newParticipant");
+            const name = nameInput.value.trim();
+            
+            if (name) {
+                participants.push({
+                    name: name,
+                    attendance: [false, false, false, false, false, false]
+                });
+                
+                nameInput.value = "";
+                renderTable();
+                updateStats();
+                updateChart();
+            } else {
+                alert("Por favor, ingrese el nombre del participante.");
+            }
+        }
+
+        // Función para calcular el porcentaje de asistencia
+        function calculateAttendanceRate(attendance) {
+            const attended = attendance.filter(a => a).length;
+            return Math.round((attended / attendance.length) * 100);
+        }
+
+        // Función para actualizar estadísticas
+        function updateStats() {
+            // Calcular asistencia por clase
+            const classTotals = [0, 0, 0, 0, 0, 0];
+            
+            participants.forEach(participant => {
+                participant.attendance.forEach((attended, index) => {
+                    if (attended) classTotals[index]++;
+                });
+            });
+
+            // Actualizar porcentajes de asistencia por clase
+            for (let i = 0; i < 6; i++) {
+                const percentage = participants.length ? Math.round((classTotals[i] / participants.length) * 100) : 0;
+                document.getElementById(`class${i+1}Total`).textContent = `${percentage}%`;
+            }
+
+            // Calcular asistencia general
+            let totalClasses = participants.length * 6;
+            let totalAttended = 0;
+            
+            participants.forEach(participant => {
+                totalAttended += participant.attendance.filter(a => a).length;
+            });
+            
+            const totalAttendancePercentage = totalClasses ? Math.round((totalAttended / totalClasses) * 100) : 0;
+            
+            document.getElementById("totalAttendance").textContent = `${totalAttendancePercentage}%`;
+            document.getElementById("statTotalAttendance").textContent = `${totalAttendancePercentage}%`;
+
+            // Participantes con asistencia perfecta
+            const perfectAttendance = participants.filter(p => calculateAttendanceRate(p.attendance) === 100).length;
+            document.getElementById("statPerfectAttendance").textContent = perfectAttendance;
+
+            // Participantes en riesgo
+            const riskAttendance = participants.filter(p => calculateAttendanceRate(p.attendance) < 50).length;
+            document.getElementById("statRiskAttendance").textContent = riskAttendance;
+        }
+
+        // Función para crear la gráfica
+        function createChart() {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            
+            // Datos para la gráfica
+            const labels = participants.map(p => p.name);
+            const data = participants.map(p => calculateAttendanceRate(p.attendance));
+            
+            // Crear gráfica
+            attendanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Porcentaje de Asistencia',
+                        data: data,
+                        backgroundColor: labels.map((_, i) => chartColors[i % chartColors.length]),
+                        borderColor: labels.map((_, i) => chartColors[i % chartColors.length]),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Porcentaje de Asistencia'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Participantes'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para actualizar la gráfica
+        function updateChart() {
+            if (attendanceChart) {
+                attendanceChart.data.labels = participants.map(p => p.name);
+                attendanceChart.data.datasets[0].data = participants.map(p => calculateAttendanceRate(p.attendance));
+                attendanceChart.data.datasets[0].backgroundColor = participants.map((_, i) => chartColors[i % chartColors.length]);
+                attendanceChart.data.datasets[0].borderColor = participants.map((_, i) => chartColors[i % chartColors.length]);
+                attendanceChart.update();
+            } else {
+                createChart();
+            }
+        }
+
+        // Función para exportar datos
+        function exportData() {
+            let csvContent = "Participante,Clase 1,Clase 2,Clase 3,Clase 4,Clase 5,Clase 6,Asistencia Total\n";
+            
+            participants.forEach(participant => {
+                const attendanceValues = participant.attendance.map(a => a ? "Sí" : "No").join(",");
+                const attendanceRate = calculateAttendanceRate(participant.attendance);
+                csvContent += `${participant.name},${attendanceValues},${attendanceRate}%\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "asistencia_power_bi.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Inicializar la aplicación cuando se cargue la página
+        window.onload = initialize;
+    </script>
+</body>
+</html>
